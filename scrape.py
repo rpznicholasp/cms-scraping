@@ -3,14 +3,14 @@
 # dependencies = [
 #     "requests",
 #     "rich",
-#     "click",
+#     "typer",
 # ]
 # ///
 import json
 import os
 import sqlite3
 import time
-import click
+import typer
 import requests
 from rich.console import Console
 from rich.progress import (
@@ -307,15 +307,19 @@ def build_context():
     return cfg, headers, conn, session
 
 
-@click.command(
-    help="Scraper CMS pages Octavian: scarica, salva su file e SQLite.",
+app = typer.Typer(
+    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
 )
-@click.option("-s", "--sync", "sync_mode", is_flag=True, help="cicla tutti gli id da start a end (default)")
-@click.option("-r", "--retry", "retry_mode", is_flag=True, help="riprova solo gli id in failed_ids; i successi vengono rimossi dalla tabella")
-def cli(sync_mode, retry_mode):
+
+
+@app.command(help="Scraper CMS pages Octavian: scarica, salva su file e SQLite.")
+def cli(
+    sync_mode: bool = typer.Option(False, "-s", "--sync", help="cicla tutti gli id da start a end (default)"),
+    retry_mode: bool = typer.Option(False, "-r", "--retry", help="riprova solo gli id in failed_ids; i successi vengono rimossi dalla tabella"),
+):
     if sync_mode and retry_mode:
-        raise click.UsageError("usa solo uno tra --sync e --retry")
+        raise typer.BadParameter("usa solo uno tra --sync e --retry")
 
     cfg, headers, conn, session = build_context()
     if retry_mode:
@@ -326,4 +330,4 @@ def cli(sync_mode, retry_mode):
 
 
 if __name__ == "__main__":
-    cli()
+    app()
